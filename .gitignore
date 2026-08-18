@@ -1,11 +1,8 @@
 *cache*
 .venv
 build/
-dist/
-layout/
-Notes/
 *.egg-info
 .conda
 *.code-workspace
 commit msg.txt
-test_sky.tif
+*.tif
