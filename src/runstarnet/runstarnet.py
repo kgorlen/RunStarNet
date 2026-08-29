@@ -24,6 +24,7 @@ import os
 import subprocess
 import sys
 from itertools import count
+from pathlib import Path
 from typing import NoReturn
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -68,34 +69,21 @@ def fatal_error(msg: str) -> NoReturn:
     cleanup_and_exit(1)
 
 
-def outfiles(infile: str) -> list[str]:
-    """Return output file command options based on the input file name."""
+def output_files(infile: Path, *outfiles: Path) -> list[Path]:
+    """Return output filename list based on the input file name."""
 
-    # Build candidate output filenames
-    base, ext = os.path.splitext(infile)
-    nostarfile: str = f"{base}_starless{ext}"
-    starfile: str = f"{base}_unscreened{ext}"
-    maskfile: str = f"{base}_stars{ext}"
-    outfiles: list[str]
-
-    if ARGS.unscreen:
-        outfiles = [nostarfile, starfile]
-        outopts = ["-o", "-n"]
-    else:
-        outfiles = [nostarfile, maskfile]
-        outopts = ["-o", "-m"]
-
-    def arglist() -> list[str]:
-        return [arg for pair in zip(outopts, outfiles) for arg in pair]
+    out_files: list[Path] = list(outfiles)
+    """Updated list of output file paths."""
 
     # Handle existing output file
 
-    for f in outfiles:
-        if os.path.exists(f):
-            print_msg(f"Output file already exists:{f}")
+    for f in out_files:
+        if f.exists():
+            if ARGS.interactive:
+                print(f"Output file already exists:{f}", file=sys.stderr)
             break
     else:
-        return arglist()  # No output files already exist
+        return out_files  # No output files already exist
 
     # At least one output file exists
     while True:
@@ -110,25 +98,25 @@ def outfiles(infile: str) -> list[str]:
 
         elif choice == "N":
             for i in count(1):
-                for f in outfiles:
+                for f in out_files:
                     base, ext = os.path.splitext(f)
                     candidate = f"{base}_{i}{ext}"
                     if os.path.exists(candidate):
                         break
                 else:
-                    outfiles = [
-                        f"{os.path.splitext(f)[0]}_{i}{os.path.splitext(f)[1]}"
-                        for f in outfiles
+                    out_files = [
+                        Path(f"{os.path.splitext(f)[0]}_{i}{os.path.splitext(f)[1]}")
+                        for f in out_files
                     ]
-                    return arglist()
+                    return out_files
 
         elif choice == "A":
             cleanup_and_exit(1)
 
         else:
-            print("Invalid choice. Please enter O, N, or A.")
+            print("Invalid choice. Please enter O, N, or A.", file=sys.stderr)
 
-    return arglist()
+    return out_files
 
 
 def prompt_for_options() -> None:
@@ -137,7 +125,7 @@ def prompt_for_options() -> None:
     # Prompt for stride until valid or empty (use default)
     while True:
         s = input(
-            "Stride (384 for wide field, < 256 rarely useful [Standard default 256]: "
+            "Enter stride (384 for wide field, < 256 rarely useful [Standard default 256]: "
         ).strip()
         if not s:
             break
@@ -178,8 +166,6 @@ def prompt_for_options() -> None:
 def main():
     """Run StarNet on the specified input image."""
 
-    global ARGS
-
     parser = argparse.ArgumentParser(description="Run StarNet on an input image")
     parser.add_argument(
         "-i",
@@ -216,17 +202,21 @@ def main():
         default=False,
         help="Use intermediate 2× upsampling, default --no-upsample",
     )
-    parser.add_argument("infile", help="Input TIFF or PNG image file")
+    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument("input", type=Path, nargs=1, help="TIFF or PNG image input file")
 
+    global ARGS
     ARGS = parser.parse_args()
 
     print_msg(f"StarNet Wrapper Version {__version__}")
 
-    infile: str = ARGS.infile
+    input_path: Path = ARGS.input[0].resolve()
 
-    if not os.path.isfile(infile):
-        print(f"Input file not found:\n  {infile}")
-        sys.exit(1)
+    if not input_path.exists():
+        raise FileNotFoundError(f"Input file not found: {input_path}")
+
+    if input_path.suffix.lower() not in (".tif", ".tiff", ".png"):
+        raise ValueError("Input must be a TIFF or PNG file.")
 
     # Get path to StarNet CLI directory
     if sys.platform == "win32":
@@ -249,36 +239,47 @@ def main():
     if ARGS.interactive:
         prompt_for_options()
 
+    # Build candidate output filenames
+    workdir: Path = input_path.parent
+    stem: str = input_path.stem
+    suffix: str = input_path.suffix
+    nostar_file: Path = workdir / f"{stem}_starless{suffix}"
+    """Path to the starless output file."""
+    stars_file: Path = workdir / f"{stem}_stars{suffix}"
+    """Path to the stars-only output file."""
+    unscreened_file: Path = workdir / f"{stem}_unscreened{suffix}"
+    """Path to the unscreened stars-only output file."""
+
+    nostar_file, unscreened_file, stars_file = output_files(
+        input_path, nostar_file, unscreened_file, stars_file
+    )
+
     # Run StarNet
-    outargs: list[str] = outfiles(infile)
     cmd = (
-        [starnet_exe, "-i", infile]
+        [starnet_exe, "-i", str(input_path), "-o", str(nostar_file)]
         + (["--stride", str(ARGS.stride)] if ARGS.stride else [])
         + (["--upsample"] if ARGS.upsample else [])
         + (["-q"] if ARGS.quiet else [])
-        + outargs
     )
+    cmd.extend(["-n", str(unscreened_file)] if ARGS.unscreen else ["-m", str(stars_file)])
 
-    print_msg("\nRunning:")
-    print_msg(" ".join(cmd))
-    print_msg()
-
+    print_msg(f"Running: {' '.join(cmd)} ...")
     result = subprocess.run(cmd, check=False)
-
     if result.returncode != 0:
         fatal_error(f"StarNet failed with return code {result.returncode}")
 
-    print_msg("\nOutput files created:")
-    for f in outargs[1::2]:
-        print_msg(f"  {f}")
-
 
 def cli() -> None:
-    """Command line interface for mailevbills."""
+    """Command-line interface."""
     try:
         main()
         cleanup_and_exit(0)
-    except Exception as e:  # pylint: disable=broad-exception-caught  # noqa: BLE001
+
+    except KeyboardInterrupt:
+        print("\nCancelled.", file=sys.stderr)
+        sys.exit(1)
+
+    except Exception as e:  # noqa: BLE001
         fatal_error(str(e))
 
 

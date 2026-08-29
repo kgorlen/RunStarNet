@@ -10,7 +10,15 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/runstarnet/runstarnet.py",
             "console": "integratedTerminal",
-            "args": ["test_sky.tif"]
+            "args": ["./Tests/test_sky.tif"]
+        },
+        {
+            "name": "Python Debugger: runstarnet test_sky_graxpert.tiff",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/runstarnet/runstarnet.py",
+            "console": "integratedTerminal",
+            "args": ["./Tests/test_sky_graxpert.tif"]
         },
         {
             "name": "Python Debugger: runstarnet --no-interactive",
@@ -18,7 +26,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/runstarnet/runstarnet.py",
             "console": "integratedTerminal",
-            "args": ["--no-interactive", "test_sky.tif"]
+            "args": ["--no-interactive", "./Tests/test_sky.tif"]
         },
         {
             "name": "Python Debugger: runstarnet --quiet",
@@ -26,7 +34,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/runstarnet/runstarnet.py",
             "console": "integratedTerminal",
-            "args": ["--quiet", "test_sky.tif"]
+            "args": ["--quiet", "./Tests/test_sky.tif"]
         },
         {
             "name": "Python Debugger: runstarnet --quiet --no-interactive",
@@ -34,7 +42,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/runstarnet/runstarnet.py",
             "console": "integratedTerminal",
-            "args": ["-q", "--no-interactive", "test_sky.tif"]
+            "args": ["-q", "--no-interactive", "./Tests/test_sky.tif"]
         },
         {
             "name": "Python Debugger: runstarnet --help",
