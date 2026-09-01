@@ -1,5 +1,7 @@
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 runstarnet.py
-- Add --insteractive, --quiet, --stride, --unscreen, --upsample, and --version
-  options.
+- main(): Use process.run(check=True).
+
+README.MD
+- Update installation instructions.

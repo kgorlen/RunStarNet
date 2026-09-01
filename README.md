@@ -28,43 +28,23 @@ Produces **two** output files:
 _*n* is appended to the filename if any output file exists and *New* is selected
 when prompted.  *New* is assumed if **--no-interactive**.
 
-## INSTALL Python
+## Install Python
 
 See [Python](https://www.python.org/downloads/).
 
-## INSTALL pipx
+## Install pipx
 
 See [pipx](https://pypi.org/project/pipx/).
 
-## INSTALL StarNet
+## Install StarNet
 
 See [StarNet official page](https://www.starnetastro.com/).
 
-## INSTALL **runstarnet** FROM `.whl` package
+## Install **runstarnet**
 
-<pre>
-<code>pipx install <i>path</i>\runstarnet-<i>version</i>-py3-none-any.whl</code>
-</pre>
-
-For example:
-
-<pre>
-<code>pipx install <i>path</i>\runstarnet-1.0.1-py3-none-any.whl</code>
-</pre>
-
-## INSTALL **runstarnet** FROM `.tar.gz` package
-
-Alternatively, install **runstarnet** from a `.tar.gz` package file:
-
-<pre>
-<code>pipx install <i>path</i>\runstarnet-<i>version</i>.tar.gz</code>
-</pre>
-
-For example:
-
-<pre>
-<code>pipx install <i>path</i>\runstarnet-1.0.1-.tar.gz</code>
-</pre>
+```
+pipx install git+https://github.com/kgorlen/RunStarNet.git
+```
 
 ## Configure Adobe Lightroom Classic
 
@@ -117,6 +97,7 @@ MIT License. See [LICENSE.txt](LICENSE.txt) for details.
 ## See Also
 
 - [StarNet official page](https://www.starnetastro.com/)
+- [RunStarNet Repository](https://github.com/kgorlen/RunStarNet)
 
 ## Author
 

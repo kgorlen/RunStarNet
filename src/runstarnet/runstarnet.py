@@ -264,9 +264,7 @@ def main():
     cmd.extend(["-n", str(unscreened_file)] if ARGS.unscreen else ["-m", str(stars_file)])
 
     print_msg(f"Running: {' '.join(cmd)} ...")
-    result = subprocess.run(cmd, check=False)
-    if result.returncode != 0:
-        fatal_error(f"StarNet failed with return code {result.returncode}")
+    subprocess.run(cmd, check=True)
 
 
 def cli() -> None:
