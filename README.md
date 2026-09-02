@@ -36,6 +36,10 @@ See [Python](https://www.python.org/downloads/).
 
 See [pipx](https://pypi.org/project/pipx/).
 
+## Install git
+
+See [git](https://git-scm.com/install/)
+
 ## Install StarNet
 
 See [StarNet official page](https://www.starnetastro.com/).
